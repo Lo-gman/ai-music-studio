@@ -1,0 +1,10 @@
+Title: Deep Sleep Ambient
+Category: Sleep
+Style: deep_sleep
+Description: Very low slow drone for deep sleep.
+Length: 1 minutes
+Seed: 2026
+
+Tags: #ambient #focusmusic #relaxingmusic #sleepmusic #studymusic #quietfrequencies
+
+This track was procedurally generated with original code. No paid AI music APIs were used.
