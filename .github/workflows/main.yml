@@ -1,0 +1,150 @@
+name: AI Music Studio - Video Production Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      style:
+        description: "Music Style / Theme"
+        required: true
+        default: "deep_focus"
+        type: choice
+        options:
+          - "deep_focus"
+          - "lofi_instrumental"
+          - "piano_ambient"
+          - "concentration"
+          - "deep_sleep"
+          - "soft_piano"
+          - "rain_atmosphere"
+          - "ocean_nature"
+          - "relaxing_electronic"
+          - "lofi_chill"
+          - "dreamy_ambient"
+          - "jazzy_background"
+          - "rainy_cafe"
+          - "forest_morning"
+          - "winter_cabin"
+      minutes:
+        description: "Duration in minutes"
+        required: true
+        default: "3"
+      preview_seconds:
+        description: "Optional test video length in seconds (leave empty for full track)"
+        required: false
+        default: ""
+      upload_youtube:
+        description: "Upload to YouTube (requires OAuth secrets, defaults to private)"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  produce-music-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies (FFmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run automated test suite
+        run: |
+          python -m unittest discover -s tests -v
+
+      - name: Determine production parameters
+        id: params
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.style }}" ]; then
+            echo "style=${{ inputs.style }}" >> "$GITHUB_OUTPUT"
+          else
+            STYLES=("deep_focus" "lofi_instrumental" "piano_ambient" "deep_sleep" "soft_piano" "rain_atmosphere" "relaxing_electronic" "lofi_chill" "dreamy_ambient" "jazzy_background")
+            DAY_IDX=$(( $(date -u +%j | sed 's/^0*//') % ${#STYLES[@]} ))
+            echo "style=${STYLES[$DAY_IDX]}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "minutes=${{ inputs.minutes || '3' }}" >> "$GITHUB_OUTPUT"
+          echo "preview_seconds=${{ inputs.preview_seconds }}" >> "$GITHUB_OUTPUT"
+          echo "upload_youtube=${{ inputs.upload_youtube || 'false' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate original music and cover art
+        run: |
+          mkdir -p output
+          STYLE="${{ steps.params.outputs.style }}"
+          MINUTES="${{ steps.params.outputs.minutes }}"
+          
+          # Check if using src/music_studio.py or root music_studio.py
+          if [ -f "src/music_studio.py" ]; then
+            python src/music_studio.py --style "$STYLE" --minutes "$MINUTES" --out output
+          else
+            python music_studio.py --theme "$STYLE" --minutes "$MINUTES" --out output
+          fi
+
+      - name: Render audio-reactive MP4 video
+        run: |
+          STYLE="${{ steps.params.outputs.style }}"
+          PREVIEW="${{ steps.params.outputs.preview_seconds }}"
+          
+          if [ -f "src/video_studio.py" ]; then
+            CMD="python src/video_studio.py --audio output/music.wav --cover output/cover.jpg --out output/video.mp4 --style $STYLE --title '$STYLE - Quiet Frequencies'"
+            if [ -n "$PREVIEW" ]; then
+              CMD="$CMD --short $PREVIEW"
+            fi
+            eval $CMD
+          else
+            python music_studio.py --theme "$STYLE" --minutes "${{ steps.params.outputs.minutes }}" --out output --video --fps 12 --qc
+          fi
+
+      - name: Verify output files and Quality Control
+        run: |
+          echo "=== Quality Control Verification ==="
+          ls -lh output
+          test -f output/music.wav || (echo "Missing music.wav" && exit 1)
+          test -f output/cover.jpg || (echo "Missing cover.jpg" && exit 1)
+          if [ -f output/video.mp4 ]; then
+            echo "Video rendered successfully: output/video.mp4"
+            ffprobe -v error -show_format -show_streams output/video.mp4
+          fi
+
+      - name: Optional YouTube Upload (Private by default)
+        if: steps.params.outputs.upload_youtube == 'true' && env.YOUTUBE_CLIENT_ID != ''
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          if [ -f "src/youtube_upload.py" ] && [ -f "output/video.mp4" ]; then
+            python src/youtube_upload.py --video output/video.mp4 --privacy private
+          fi
+
+      - name: Upload production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiet-frequencies-${{ steps.params.outputs.style }}-${{ github.run_number }}
+          path: |
+            output/*.mp4
+            output/*.wav
+            output/*.mp3
+            output/*.jpg
+            output/*.txt
+            output/*.json
+            library/*.json
+          retention-days: 14

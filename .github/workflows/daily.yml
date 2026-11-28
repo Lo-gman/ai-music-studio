@@ -1,36 +1,33 @@
-name: Build a music video
+name: Daily Music Video Production
 
 on:
   workflow_dispatch:
     inputs:
-      theme:
-        description: Composition theme
+      style:
+        description: "Music Style / Theme"
         required: true
-        default: rainy_cafe
+        default: "deep_focus"
         type: choice
         options:
-          - rainy_cafe
-          - forest_morning
-          - ocean_dreams
-          - deep_sleep
-          - mountain_stream
-          - desert_night
-          - winter_cabin
-          - night_forest
-          - lofi_study
-          - jazz_night
+          - "deep_focus"
+          - "lofi_instrumental"
+          - "piano_ambient"
+          - "concentration"
+          - "deep_sleep"
+          - "soft_piano"
+          - "rain_atmosphere"
+          - "ocean_nature"
+          - "relaxing_electronic"
+          - "lofi_chill"
+          - "dreamy_ambient"
+          - "jazzy_background"
+          - "rainy_cafe"
+          - "forest_morning"
+          - "winter_cabin"
       minutes:
-        description: Track length (1 to 15 minutes)
+        description: "Track length in minutes"
         required: true
         default: "3"
-      instruments:
-        description: Optional comma-separated instrument overrides
-        required: false
-        default: ""
-      environments:
-        description: Optional comma-separated environment overrides
-        required: false
-        default: ""
   schedule:
     - cron: "0 9 * * *"
 
@@ -43,47 +40,70 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
+          cache: "pip"
+
+      - name: Install system dependencies (FFmpeg)
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Select daily theme
+
+      - name: Run automated test suite
+        run: |
+          python -m unittest discover -s tests -v
+
+      - name: Select daily style
         id: config
         shell: bash
         run: |
-          if [ -n "${{ inputs.theme }}" ]; then
-            echo "theme=${{ inputs.theme }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${{ inputs.style }}" ]; then
+            echo "style=${{ inputs.style }}" >> "$GITHUB_OUTPUT"
           else
-            themes=(rainy_cafe forest_morning ocean_dreams deep_sleep mountain_stream desert_night winter_cabin night_forest lofi_study jazz_night)
-            idx=$(( $(date -u +%j | sed 's/^0*//') % ${#themes[@]} ))
-            echo "theme=${themes[$idx]}" >> "$GITHUB_OUTPUT"
+            STYLES=("deep_focus" "lofi_instrumental" "piano_ambient" "deep_sleep" "soft_piano" "rain_atmosphere" "relaxing_electronic" "lofi_chill" "dreamy_ambient" "jazzy_background")
+            IDX=$(( $(date -u +%j | sed 's/^0*//') % ${#STYLES[@]} ))
+            echo "style=${STYLES[$IDX]}" >> "$GITHUB_OUTPUT"
           fi
           echo "minutes=${{ inputs.minutes || '3' }}" >> "$GITHUB_OUTPUT"
-      - name: Run unit tests
-        run: python -m unittest discover -s tests -v
-      - name: Generate thematic music, artwork, animated video, and run QC
+
+      - name: Generate music, cover artwork, and metadata
         run: |
-          ARGS="--theme ${{ steps.config.outputs.theme }} --minutes ${{ steps.config.outputs.minutes }} --out output --video --fps 10 --qc"
-          if [ -n "${{ inputs.instruments }}" ]; then
-            ARGS="$ARGS --instruments '${{ inputs.instruments }}'"
+          mkdir -p output
+          STYLE="${{ steps.config.outputs.style }}"
+          MINUTES="${{ steps.config.outputs.minutes }}"
+          if [ -f "src/music_studio.py" ]; then
+            python src/music_studio.py --style "$STYLE" --minutes "$MINUTES" --out output
+          else
+            python music_studio.py --theme "$STYLE" --minutes "$MINUTES" --out output
           fi
-          if [ -n "${{ inputs.environments }}" ]; then
-            ARGS="$ARGS --environments '${{ inputs.environments }}'"
+
+      - name: Render video
+        run: |
+          STYLE="${{ steps.config.outputs.style }}"
+          if [ -f "src/video_studio.py" ]; then
+            python src/video_studio.py --audio output/music.wav --cover output/cover.jpg --out output/video.mp4 --style "$STYLE" --title "$STYLE - Quiet Frequencies"
+          else
+            python music_studio.py --theme "$STYLE" --minutes "${{ steps.config.outputs.minutes }}" --out output --video --fps 12 --qc
           fi
-          eval python music_studio.py $ARGS
+
       - name: Save video and provenance as downloadable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quiet-frequencies-${{ steps.config.outputs.theme }}-${{ github.run_number }}
+          name: quiet-frequencies-${{ steps.config.outputs.style }}-${{ github.run_number }}
           path: |
             output/*.mp4
-            output/cover.jpg
-            output/metadata.txt
-            library/catalog.json
+            output/*.wav
+            output/*.mp3
+            output/*.jpg
+            output/*.txt
+            output/*.json
+            library/*.json
           retention-days: 7

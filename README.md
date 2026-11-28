@@ -1,83 +1,132 @@
-# AI Music Studio
+# AI Music Studio — Quiet Frequencies
 
-A production-grade, zero-dollar operating budget engine for generating original **thematic music compositions**, layered environmental soundscapes, procedural cinematic visual artwork, and animated MP4 videos using GitHub Actions.
+A zero-budget, fully automated YouTube music studio built for **thematic music composition, cinematic video generation, and monetization eligibility**.
 
-## Key Features
-
-1. **Layered Music Composition Engine**:
-   - Multiple instruments per track (harmony, chords, pads, lead melody, basslines, and rhythm).
-   - Chord progressions, musical scales, dynamic arrangement sections (intro, verse, chorus/build, bridge, outro), fade-ins/outs, and humanized velocity.
-   - 100% procedurally synthesized with no external paid audio APIs.
-
-2. **Modular Natural Sound Library**:
-   - **Water & Weather**: Window rain, downpours, storms, thunder, ocean waves (sandy & rocky), calm lake water, mountain streams, waterfalls.
-   - **Wind**: Tall grass, reeds, desert dunes, soft forest wind, pine needles, mountain wind, coastal wind.
-   - **Forests & Landscapes**: Rustling leaves, pine forest ambience, campfire crackling & popping embers, cave drips.
-   - **Wildlife & Birds**: Songbirds, sparrows, owls, crickets, cicadas, frogs, loons, seagulls.
-   - **Earth & Atmosphere**: Earth rumbles, glacier ambience, snowfall, winter cabin tone.
-
-3. **Musical Instrument Engine**:
-   - **Keyboards & Pianos**: Felt piano, Rhodes, Wurlitzer, soft grand piano, reverb piano, organs, celeste, music box.
-   - **Guitars & Plucked**: Jazz guitar, acoustic fingerpicking, harp, oud, bass guitar, upright double bass.
-   - **Winds & Brass**: Flute, saxophones, trumpet, clarinet.
-   - **Strings & Orchestral**: Violins, cellos, lush string pads, cinematic strings.
-   - **Percussion & Textures**: Soft boom-bap, dusty drums, vinyl crackle, tape hiss, room ambience.
-   - **Synthesizers**: Warm analog pads, ambient pads, analog bass, evolving textures, drones.
-
-4. **10 Thematic Composition Presets**:
-   - `rainy_cafe`: Felt piano, Rhodes, jazz guitar, upright bass, brushed percussion, window rain & distant thunder.
-   - `forest_morning`: Acoustic guitar, flute, felt piano, warm strings, songbirds & leaves.
-   - `ocean_dreams`: Ambient piano, soft synth pads, harp, slow strings, ocean waves & coastal breeze.
-   - `deep_sleep`: Minimal slow ambient pads, soft drones, sparse piano, gentle rain (sleep-safe mix).
-   - `mountain_stream`: Flowing water, mountain wind, flute, acoustic guitar, soft strings.
-   - `desert_night`: Oud-inspired plucked strings, desert dunes wind, cello, warm pads.
-   - `winter_cabin`: Snowfall, fireplace crackle, felt piano, acoustic guitar, music box.
-   - `night_forest`: Crickets, owls, night wind, ambient pads, sparse piano, subtle strings.
-   - `lofi_study`: Rhodes, dusty drums, bass, jazz guitar, vinyl crackle & light rain.
-   - `jazz_night`: Jazz piano, hollow-body guitar, upright bass, tenor sax, brushed drums, night ambience.
-
-5. **Audio Mixing & Spatial Design**:
-   - Profile-aware mixing (`study`, `sleep`, `chill`, `cinematic_ambient`, `nature_soundscapes`).
-   - Stereo panning, reverb, delay, RMS loudness normalization, and peak limiting to prevent clipping.
-
-6. **Thematic Video Art & Animation Engine**:
-   - 16:9 full-fidelity visual scenes generated to match each theme (rainy windows, sunlit forests, moonlit oceans, starry night skies, cozy winter cabins).
-   - Dynamic animated elements: moving stars, falling rain, falling snow, wave undulation, firelight glow, and audio-reactive particle energy.
-   - Formatted in H.264 video + AAC audio MP4 container.
-
-7. **Track Provenance & Automated Quality Control (QC)**:
-   - Searchable `library/catalog.json` tracks IDs, seeds, chords, instruments, environments, and parameters.
-   - Automated QC verifies audio length, clipping, RMS levels, visual dimensions, video stream codecs, and A/V sync before completion.
+Generates original instrumental ambient music, layered environmental soundscapes, audio-reactive videos, and channel branding — all with original code, no paid APIs, and no third-party audio or visual assets.
 
 ---
 
-## Usage
+## Channels & Thematic Presets
 
-### Local CLI
-Generate a track with default theme (`rainy_cafe`):
-```bash
-python music_studio.py --theme rainy_cafe --minutes 3 --out output --video --qc
+| Channel | Thematic Styles & Presets | Soundscape & Instruments |
+|---------|---------------------------|--------------------------|
+| **Study** | `deep_focus`, `lofi_instrumental`, `piano_ambient`, `concentration`, `lofi_study` | Felt piano, Rhodes, jazz guitar, soft strings, vinyl crackle, gentle rain |
+| **Sleep** | `deep_sleep`, `soft_piano`, `rain_atmosphere`, `ocean_nature`, `night_forest` | Deep sleep pads, minimal piano, crickets, night wind, ocean waves, sleep-safe mix |
+| **Chill** | `relaxing_electronic`, `lofi_chill`, `dreamy_ambient`, `jazzy_background`, `rainy_cafe`, `forest_morning`, `mountain_stream`, `desert_night`, `winter_cabin`, `jazz_night` | Acoustic guitar, flutes, oud, cello, brushed percussion, flowing water, crackling fire |
+
+---
+
+## Monetization Readiness
+
+| Requirement | Status |
+|-------------|--------|
+| Original musical compositions | Chord progressions, melody, basslines, layered arrangements |
+| Coherent variety (no mass spam) | Controlled procedural seeds, harmonic scales, dynamic sections |
+| Original visuals | 16:9 full HD audio-reactive procedural visual scenes matching music themes |
+| Synthetic content disclosure | `SYNTHETIC_DISCLOSURE.md` + automated per-video YouTube metadata disclosure |
+| Commercial-use rights | 100% original synthesis from scratch; zero third-party samples |
+| Provenance records | Searchable JSON manifests (`catalog.json` / provenance records) per track |
+| Zero-dollar operating budget | `numpy`, `Pillow`, `FFmpeg`, `Flask` only — no paid APIs |
+
+---
+
+## Project Structure
+
+```
+ai-music-studio/
+├── .github/workflows/
+│   ├── main.yml             # Primary GitHub Actions automated pipeline
+│   └── daily.yml            # Daily scheduled and dispatch workflow
+├── branding/                # Profile, banner, and category thumbnails
+├── output/                  # Generated music, covers, videos, and metadata
+├── src/                     # Core studio modules
+│   ├── synth_engine.py      # Oscillators, envelopes, filters, reverb, delay
+│   ├── music_studio.py      # Music synthesis & arrangement engine
+│   ├── visualizer.py        # Audio-reactive FFT visualizer & video renderer
+│   ├── video_studio.py      # Video production & YouTube metadata generator
+│   ├── branding.py          # Channel artwork generator
+│   ├── youtube_upload.py    # YouTube Data API v3 OAuth upload
+│   └── dashboard.py         # Local production dashboard (Flask)
+├── studio/                  # Extended thematic composition & natural sound engine
+│   ├── theory.py            # Music theory, scales, progressions, melodies
+│   ├── instruments.py       # 60+ instrument procedural synthesis
+│   ├── environments.py      # 50+ natural soundscapes (water, wind, birds, earth)
+│   ├── mixing.py            # Spatial mixing, AGC, limiter, EQ
+│   ├── themes.py            # Thematic presets & intelligent sound selection
+│   ├── visuals.py           # Thematic cinematic scene generator
+│   ├── video.py             # Video MP4 pipeline
+│   ├── provenance.py        # Provenance catalog & uniqueness tracking
+│   └── qc.py                # Automated quality control checks
+├── tests/                   # Automated unit & integration tests
+├── SYNTHETIC_DISCLOSURE.md  # YouTube synthetic content disclosure
+├── requirements.txt         # Free/open-source Python dependencies
+├── README.md
+└── LICENSE                  # MIT
 ```
 
-Choose any theme:
+---
+
+## Local Installation
+
 ```bash
-python music_studio.py --theme ocean_dreams --minutes 5 --out output --video --qc
+git clone https://github.com/Lo-gman/ai-music-studio.git
+cd ai-music-studio
+python -m pip install -r requirements.txt
 ```
 
-Customize instruments or environments:
+---
+
+## Running the Engine
+
+### Option A: Thematic Studio Engine
 ```bash
-python music_studio.py --theme lofi_study --instruments felt_piano,clean_jazz_guitar --environments gentle_window_rain,vinyl_crackle
+# Generate music, cover art, animated MP4 video, and run automated QC:
+python music_studio.py --theme rainy_cafe --minutes 5 --out output --video --qc
 ```
 
-Run test suite:
+### Option B: Channel Arrangement Engine
 ```bash
-python -m unittest discover -s tests -v
+# Generate track:
+python src/music_studio.py --style deep_focus --minutes 5 --out output/my_track
+
+# Render audio-reactive video:
+python src/video_studio.py --audio output/my_track/music.wav --cover output/my_track/cover.jpg \
+  --out output/my_track/video.mp4 --style deep_focus --title "Deep Focus - Study" --short 60
 ```
 
-### GitHub Actions
-The repository includes an automated workflow (`.github/workflows/daily.yml`) that can run on demand (`workflow_dispatch`) or on a daily schedule to produce downloadable MP4 video artifacts.
+### Local Dashboard
+```bash
+python src/dashboard.py
+# Open http://localhost:5000 in your browser
+```
+
+---
+
+## Automated GitHub Actions Workflows
+
+The workflows in `.github/workflows/main.yml` and `.github/workflows/daily.yml` automate:
+1. Environment setup and dependency installation (Python 3.11 + FFmpeg).
+2. Automated test suite execution (`unittest`).
+3. Procedural music synthesis with selected or daily rotating theme/style.
+4. Audio-reactive 16:9 full HD video rendering.
+5. Automated quality control (QC) checks on audio clipping, volume levels, and A/V sync.
+6. Generation of YouTube-ready title, tags, and description with synthetic content disclosure.
+7. Optional automated upload to YouTube via OAuth (if secrets are configured, defaulting to `private`).
+8. Packaging and storing video, audio, artwork, and provenance records as downloadable artifacts.
+
+---
+
+## YouTube Publishing
+
+Set up Google Cloud OAuth per instructions in `YOUTUBE_SETUP.md`. Add credentials exclusively as GitHub Secrets:
+- `YOUTUBE_CLIENT_ID`
+- `YOUTUBE_CLIENT_SECRET`
+- `YOUTUBE_REFRESH_TOKEN`
+
+All uploads default to `private` mode for safety until approved.
 
 ---
 
 ## License
-Original procedural synthesis and code under the repository's open license. Zero paid API dependencies.
+
+MIT — All generated audio, video, and artwork is original and commercially usable.
