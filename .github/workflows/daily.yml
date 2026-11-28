@@ -3,19 +3,34 @@ name: Build a music video
 on:
   workflow_dispatch:
     inputs:
-      style:
-        description: Music mood
+      theme:
+        description: Composition theme
         required: true
-        default: study
+        default: rainy_cafe
         type: choice
         options:
-          - study
-          - sleep
-          - chill
+          - rainy_cafe
+          - forest_morning
+          - ocean_dreams
+          - deep_sleep
+          - mountain_stream
+          - desert_night
+          - winter_cabin
+          - night_forest
+          - lofi_study
+          - jazz_night
       minutes:
-        description: Track length (1 to 30 minutes)
+        description: Track length (1 to 15 minutes)
         required: true
-        default: "5"
+        default: "3"
+      instruments:
+        description: Optional comma-separated instrument overrides
+        required: false
+        default: ""
+      environments:
+        description: Optional comma-separated environment overrides
+        required: false
+        default: ""
   schedule:
     - cron: "0 9 * * *"
 
@@ -38,35 +53,37 @@ jobs:
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Select daily mood
-        id: mood
+      - name: Select daily theme
+        id: config
         shell: bash
         run: |
-          if [ -n "${{ inputs.style }}" ]; then
-            echo "style=${{ inputs.style }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${{ inputs.theme }}" ]; then
+            echo "theme=${{ inputs.theme }}" >> "$GITHUB_OUTPUT"
           else
-            day=$(date -u +%u)
-            case "$day" in
-              1|4) echo "style=study" >> "$GITHUB_OUTPUT" ;;
-              2|5) echo "style=chill" >> "$GITHUB_OUTPUT" ;;
-              *) echo "style=sleep" >> "$GITHUB_OUTPUT" ;;
-            esac
+            themes=(rainy_cafe forest_morning ocean_dreams deep_sleep mountain_stream desert_night winter_cabin night_forest lofi_study jazz_night)
+            idx=$(( $(date -u +%j | sed 's/^0*//') % ${#themes[@]} ))
+            echo "theme=${themes[$idx]}" >> "$GITHUB_OUTPUT"
           fi
-          if [ -n "${{ inputs.minutes }}" ]; then
-            echo "minutes=${{ inputs.minutes }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "minutes=5" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Generate original music and artwork
-        run: python music_studio.py --style "${{ steps.mood.outputs.style }}" --minutes "${{ steps.mood.outputs.minutes }}" --out output
-      - name: Render MP4 video
+          echo "minutes=${{ inputs.minutes || '3' }}" >> "$GITHUB_OUTPUT"
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate thematic music, artwork, animated video, and run QC
         run: |
-          ffmpeg -y -loop 1 -i output/cover.jpg -i output/music.wav             -c:v libx264 -tune stillimage -pix_fmt yuv420p             -c:a aac -b:a 192k -shortest -movflags +faststart             output/quiet-frequencies-${{ steps.mood.outputs.style }}.mp4
-      - name: Save video as downloadable artifact
+          ARGS="--theme ${{ steps.config.outputs.theme }} --minutes ${{ steps.config.outputs.minutes }} --out output --video --fps 10 --qc"
+          if [ -n "${{ inputs.instruments }}" ]; then
+            ARGS="$ARGS --instruments '${{ inputs.instruments }}'"
+          fi
+          if [ -n "${{ inputs.environments }}" ]; then
+            ARGS="$ARGS --environments '${{ inputs.environments }}'"
+          fi
+          eval python music_studio.py $ARGS
+      - name: Save video and provenance as downloadable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quiet-frequencies-${{ steps.mood.outputs.style }}-${{ github.run_number }}
+          name: quiet-frequencies-${{ steps.config.outputs.theme }}-${{ github.run_number }}
           path: |
             output/*.mp4
+            output/cover.jpg
             output/metadata.txt
+            library/catalog.json
           retention-days: 7
